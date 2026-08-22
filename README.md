@@ -134,6 +134,53 @@
 
 ---
 
+### Supervisor Multi-Agent
+
+```mermaid
+graph TD
+    %% Entry Point
+    START([Client / API Request]) --> Supervisor[Supervisor: route_task]
+
+    %% Router Branching
+    Supervisor -->|task_type == 'GENERATE_SENTENCE'| GeneratorNode[generator: generate_sentence_node]
+    Supervisor -->|task_type == 'PROVIDE_FEEDBACK'| FeedbackNode[feedback: provide_feedback_node]
+    Supervisor -->|task_type == 'TUTOR_QUESTION'| TutorNode[tutor: tutor_node]
+    Supervisor -->|task_type == 'PROCESS_OCR'| OCRNode[ocr: ocr_process_node]
+    Supervisor -->|Invalid task_type| END_FAIL([END / Router Fallback])
+
+    %% Data Interactions & Engines
+    subgraph Data Layer & Engines
+        HybridRAG[HybridRAGEngine]
+        KG[(Knowledge Graph)]
+        VectorDB[(Vector Store)]
+        OCRService[OCRPipelineService / Vision]
+    end
+
+    HybridRAG --- KG
+    HybridRAG --- VectorDB
+
+    %% Node Execution Flow
+    GeneratorNode -->|Target Words Context Retrieval| HybridRAG
+    GeneratorNode -->|JSON Generation| EndState([END / State Update])
+
+    FeedbackNode -->|Sentence / Word Rule Search| HybridRAG
+    FeedbackNode -->|Logical Feedback Analysis| EndState
+
+    TutorNode -->|Hybrid Search: Graph + Vector| HybridRAG
+    TutorNode -->|Few-Shot Structured JSON| EndState
+
+    OCRNode -->|Extract Raw Text| OCRService
+    OCRNode -->|Instant Indexing| VectorDB
+    OCRNode -->|Structured Result| EndState
+
+    %% Styling
+    style Supervisor fill:#f9f,stroke:#333,stroke-width:2px
+    style HybridRAG fill:#bbf,stroke:#333,stroke-width:2px
+    style EndState fill:#dfd,stroke:#333,stroke-width:2px
+```
+
+---
+
 ## 프로젝트 구조
 
 ```text
