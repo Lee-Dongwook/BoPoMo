@@ -1,0 +1,40 @@
+{
+  "name": "@bopomo/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint:rules": "eslint .",
+    "lint:code-format": "prettier --check \"{src,__mocks__}/**/*.{js,json,md,ts,tsx,yml,yaml}\"",
+    "lint:type-check": "tsc",
+    "lint": "yarn lint:rules && yarn lint:code-format && yarn lint:type-check",
+    "lint:fix": "yarn lint:rules --fix && yarn lint:code-format --write && yarn lint:type-check",
+    "test:report": "jest --collectCoverage --coverageDirectory=\"./coverage\" --ci --reporters=default --reporters=jest-junit --coverage",
+    "pod-install": "npx pod-install"
+  },
+  "dependencies": {
+    "i18next": "^26.4.0",
+    "intl-pluralrules": "^2.0.1",
+    "ky": "^2.0.2",
+    "react": "^19.2.8",
+    "react-native": "^0.87.0",
+    "react-native-gesture-handler": "^3.2.1",
+    "react-native-mmkv": "^4.3.2",
+    "react-native-nitro-modules": "^0.37.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "dotenv": "^17.4.2",
+    "eslint": "^10.9.0",
+    "jest": "^30.4.2",
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.67.0"
+  }
+}
