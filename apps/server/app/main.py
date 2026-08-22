@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import evaluate, sentence
+from app.api.v1.endpoints import evaluate, sentence, words
 
 app = FastAPI(
     title="Bopomo AI Engine",
@@ -18,6 +18,7 @@ app.add_middleware(
 
 app.include_router(sentence.router, prefix="/api/v1/sentence", tags=["Sentence"])
 app.include_router(evaluate.router, prefix="/api/v1/evaluate", tags=["Evaluate"])
+app.include_router(words.router, prefix="/api/v1/words", tags=["Words"])
 
 @app.get("/health")
 async def health_check():
