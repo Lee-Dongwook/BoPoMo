@@ -35,6 +35,105 @@
   - 목표 단어를 바탕으로 예문을 생성하는 LangGraph 에이전트 구조
   - 예문 생성 API 및 테스트 코드 작성 단계
 
+## Hybrid RAG System (VectorRAG + GraphRAG)
+
+소형 로컬 LLM(Ollama/Gemma2, Llama3.2 등)의 추론 능력 한계와 환각(Hallucination) 현상을 보완하기 위해 **VectorRAG**와 **GraphRAG**를 결합한 하이브리드 검색 증강 생성 시스템을 적용합니다.
+
+---
+
+### 1. System Architecture
+
+```text
+                                 [User Target Words / Weakness Input]
+                                                  │
+                                                  ▼
+                                     ┌─────────────────────────┐
+                                     │ Hybrid RAG Orchestrator │
+                                     └────────────┬────────────┘
+                                                  │
+                      ┌───────────────────────────┴───────────────────────────┐
+                      ▼                                                       ▼
+        ┌───────────────────────────┐                           ┌───────────────────────────┐
+        │        VectorRAG          │                           │         GraphRAG          │
+        │  (ChromaDB + bge-m3)      │                           │   (NetworkX / Neo4j)      │
+        ├───────────────────────────┤                           ├───────────────────────────┤
+        │ - 의미적 유사 예문 검색        │                           │  - 한자-성조-부수 관계망       │
+        │ - 상황별 HSK 문장 Retrieval  │                           │ - 성조 변조(Sandhi) 규칙     │
+        └─────────────┬─────────────┘                           └─────────────┬─────────────┘
+                      │                                                       │
+                      └───────────────────────────┬───────────────────────────┘
+                                                  │
+                                                  ▼ (RRF Fusion)
+                                      [Combined Context Block]
+                                                  │
+                                                  ▼
+                                    ┌───────────────────────────┐
+                                    │    Local LLM (Ollama)     │
+                                    │  - Strict JSON Formatting │
+                                    └───────────────────────────┘
+```
+
+### 2. Core Components & Capabilities
+
+#### VectorRAG (Semantic Similarity Search)
+
+- 역할: HSK 기초 어휘집 및 검증된 예문 데이터베이스 기반 시맨틱 유사도 검색
+
+- 엔진: ChromaDB (Vector Store) + bge-m3 / HuggingFace (Local Embedding)
+
+- 목적: 로컬 LLM이 무작위로 문장을 창작하지 않고, 표준 예문 패턴을 인지하도록 지원
+
+#### GraphRAG (Knowledge Graph Traversal)
+
+- 역할: 중국어 언어 구조 특성에 맞춘 엔티티-관계 그래프 기반 규칙 검색
+- 엔진: NetworkX (In-Memory) / Neo4j
+- 목적:
+  - 성조 변조(Sandhi) 규칙 강제: 3성 + 3성 -> 2성 + 3성, '不'/'一' 변조 규칙을 노드 관계로 추출하여 프롬프트에 주입
+  - 품사 결합 및 유사 한자 제약: 오답율이 높은 단어쌍 간의 관계망 추적
+
+### 3. Data Schema & Graph Structure
+
+```text
+(Word: "好") ──[TONE_RULE]──> (Rule: "3성 연속 변조")
+     │
+ [PAIR_WITH]
+     ▼
+(Word: "你") ──[HAS_TONE]───> (Tone: 3)
+
+```
+
+- Nodes:
+
+  - WORD: 단어 ID, 한자, 병음, 성조, 한국어 뜻
+
+  - TONE_RULE: 성조 변조 규칙명, 적용 조건, 예외 사항
+
+  - GRAMMAR: 문법 구조 규칙
+
+- Edges:
+
+  - APPLIES_RULE: 단어 및 음절 결합 시 적용되는 성조 규칙
+
+  - COMPONENT_OF: 부수 및 형성자 구성 관계
+
+---
+
+#### 4. Workflow
+
+1. Query Processing: 사용자의 취약 단어(Pinyin, Tone) 입력 수신
+
+2. Parallel Retrieval:
+
+   - Vector Search: 취약 단어가 포함된 적절한 난이도의 HSK 표준 예문 획득
+
+   - Graph Traversal: 취약 단어 조합 시 발생하는 성조 변조 규칙 및 연관 어휘 추출
+
+3. Context Fusion: Reciprocal Rank Fusion(RRF) 기반 검색 결과 병합 및 Context Block 구성
+
+4. LLM Generation: RAG Context를 바탕으로 로컬 LLM이 Pydantic 스키마 형태의 JSON 결과물 반환
+
+---
+
 ## 프로젝트 구조
 
 ```text
