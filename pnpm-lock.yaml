@@ -17,6 +17,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@bopomo/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       i18next:
         specifier: ^26.4.0
         version: 26.4.0(typescript@7.0.2)

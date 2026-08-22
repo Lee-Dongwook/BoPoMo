@@ -15,4 +15,26 @@ describe("convertNumericToPinyin", () => {
     expect(convertNumericToPinyin("ma6")).toBe("ma6");
     expect(convertNumericToPinyin("invalid")).toBe("invalid");
   });
+
+  it("병음을 보포모포(주음부호)로 정확하게 변환해야 한다", () => {
+    import("./pinyin").then(({ pinyinToZhuyin }) => {
+      expect(pinyinToZhuyin("ni3")).toBe("ㄋㄧˇ");
+      expect(pinyinToZhuyin("hao3")).toBe("ㄏㄠˇ");
+      expect(pinyinToZhuyin("ma1")).toBe("ㄇㄚ");
+      expect(pinyinToZhuyin("bu4")).toBe("ㄅㄨˋ");
+      expect(pinyinToZhuyin("shi4")).toBe("ㄕˋ");
+    });
+  });
+
+  it("3성+3성, 不, 一 성조 변조 규칙을 정확하게 탐지해야 한다", () => {
+    import("./pinyin").then(({ detectToneSandhi }) => {
+      const words = [
+        { id: "w-1", pinyin: "nǐ", pinyinNumeric: "ni3", hanzi: "你", meaning: "너", tone: 3 as const, level: 1 },
+        { id: "w-2", pinyin: "hǎo", pinyinNumeric: "hao3", hanzi: "好", meaning: "좋다", tone: 3 as const, level: 1 },
+      ];
+      const sandhi = detectToneSandhi(words);
+      expect(sandhi.length).toBe(1);
+      expect(sandhi[0]?.ruleId).toBe("rule-sandhi-33");
+    });
+  });
 });

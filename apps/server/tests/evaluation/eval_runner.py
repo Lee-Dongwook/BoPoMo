@@ -1,8 +1,8 @@
 import json
 import pytest
-from typing import Dict, Any
+from typing import Dict, Any, List
 from app.rag.dependencies import get_rag_engine
-from app.llm.client import get_local_llm_client
+from app.core.llm import get_local_llm_client
 from tests.evaluation.eval_dataset import EVAL_DATASET
 
 

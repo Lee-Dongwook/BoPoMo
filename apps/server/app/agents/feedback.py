@@ -1,8 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from app.agents.state import AgentState
-
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
+from app.core.llm import get_llm
 
 feedback_prompt = ChatPromptTemplate.from_messages([
     ("system", (
@@ -13,6 +11,7 @@ feedback_prompt = ChatPromptTemplate.from_messages([
 ])
 
 def provide_feedback_node(state: AgentState) -> AgentState:
+    llm = get_llm()
     words_str = ", ".join([f"{w['pinyin']}({w['meaning']})" for w in state["target_words"]])
     user_input = state.get("user_input_sentence", "")
     

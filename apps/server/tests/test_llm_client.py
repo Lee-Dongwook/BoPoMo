@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from app.llm.client import generate_structured_json
+from app.core.llm import generate_structured_json
 
 
 @pytest.mark.asyncio

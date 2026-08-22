@@ -37,9 +37,8 @@ export const calculateNextReview = (
   );
 
   const bonusEase = result.responseTimeMs < 2000 ? 0.1 : 0;
-  const nextEaseFactor = Math.round(
-    ((currentState.easeFactor + bonusEase) * 100) / 100,
-  );
+  const nextEaseFactor =
+    Math.round((currentState.easeFactor + bonusEase) * 100) / 100;
 
   return {
     wordId: result.wordId,

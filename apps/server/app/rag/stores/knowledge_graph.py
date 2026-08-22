@@ -40,8 +40,10 @@ class BopomoKnowledgeGraph:
         for node in all_connected:
             node_data = self.graph.nodes[node]
             if node_data.get("type") == "TONE_RULE":
-                rules.append(node_data)
+                rules.append({"id": node, **node_data})
             elif node_data.get("type") == "WORD":
-                related_words.append(node_data)
+                related_words.append({"id": node, **node_data})
         
+        # Sort rules so shorter standard id (e.g. rule-bu, rule-33) is prioritized
+        rules.sort(key=lambda r: (len(r.get("id", "")), r.get("id", "")))
         return {"rules": rules, "related_words": related_words}

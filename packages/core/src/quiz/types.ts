@@ -1,6 +1,10 @@
 import { Word } from "../types";
 
-export type QuizType = "TONE_MATCH" | "MEANING_MATCH";
+export type QuizType =
+  | "TONE_MATCH"
+  | "MEANING_MATCH"
+  | "BOPOMO_MATCH"
+  | "PINYIN_MATCH";
 
 export interface BaseQuizQuestion {
   readonly id: string;
@@ -19,7 +23,21 @@ export interface MeaningMatchQuestion extends BaseQuizQuestion {
   readonly options: readonly string[];
 }
 
-export type QuizQuestion = ToneMatchQuestion | MeaningMatchQuestion;
+export interface BopomoMatchQuestion extends BaseQuizQuestion {
+  readonly type: "BOPOMO_MATCH";
+  readonly options: readonly string[];
+}
+
+export interface PinyinMatchQuestion extends BaseQuizQuestion {
+  readonly type: "PINYIN_MATCH";
+  readonly options: readonly string[];
+}
+
+export type QuizQuestion =
+  | ToneMatchQuestion
+  | MeaningMatchQuestion
+  | BopomoMatchQuestion
+  | PinyinMatchQuestion;
 
 export interface QuizSubmission {
   readonly question: QuizQuestion;
@@ -33,4 +51,6 @@ export interface QuizEvaluation {
   readonly selectedOption: string;
   readonly correctOption: string;
   readonly responseTimeMs: number;
+  readonly explanation?: string;
 }
+

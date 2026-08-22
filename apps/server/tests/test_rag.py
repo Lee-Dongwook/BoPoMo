@@ -13,11 +13,8 @@ def setup_rag():
     # 1. Knowledge Graph 초기화 및 시드 데이터 로드
     kg = seed_knowledge_graph()
 
-    # 2. 테스트용 Vector Store 초기화
-    if os.path.exists(TEST_CHROMA_DIR):
-        shutil.rmtree(TEST_CHROMA_DIR)
-    
-    vector_store = BopomoVectorStore(persist_directory=TEST_CHROMA_DIR)
+    # 2. 테스트용 In-Memory Vector Store 초기화
+    vector_store = BopomoVectorStore(in_memory=True)
     
     # 기초 예문 임베딩 데이터 인덱싱
     sample_sentences = [
@@ -29,10 +26,6 @@ def setup_rag():
     engine = HybridRAGEngine(kg=kg, vector_store=vector_store)
 
     yield engine
-
-    # 테스트 종료 후 정리
-    if os.path.exists(TEST_CHROMA_DIR):
-        shutil.rmtree(TEST_CHROMA_DIR)
 
 
 def test_knowledge_graph_seed(setup_rag):

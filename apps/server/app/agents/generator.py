@@ -1,4 +1,4 @@
-from apps.server.app.rag.retriever.hybrid import HybridRAGEngine
+from app.rag.retriever.hybrid import HybridRAGEngine
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from app.agents.state import AgentState
@@ -8,7 +8,7 @@ from app.schemas.sentence import GeneratedSentenceResponse
 
 parser = PydanticOutputParser(pydantic_object=GeneratedSentenceResponse)
 
-generator_prompt = ChatPromptTemplate.from_messsages([
+generator_prompt = ChatPromptTemplate.from_messages([
     ("system", (
         "당신은 30년 이상의 경력이 있는 초급 중국어 교육 전문 AI입니다."
         "주어진 취약 단어 목록(성조 포함)을 필수적으로 활용하여 초보자가 학습하기 좋은 자연스럽고 쉬우며, 많이 활용되는 중국어 예문을 만드세요."

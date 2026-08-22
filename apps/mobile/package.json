@@ -16,6 +16,7 @@
     "pod-install": "npx pod-install"
   },
   "dependencies": {
+    "@bopomo/core": "workspace:*",
     "i18next": "^26.4.0",
     "intl-pluralrules": "^2.0.1",
     "ky": "^2.0.2",
