@@ -2,12 +2,12 @@ import json
 import pytest
 from tests.evaluation.golden_dataset import GOLDEN_EVAL_DATASET
 from app.rag.dependencies import get_rag_engine
-from app.llm.client import get_llm, generate_structured_json
+from app.core.llm import get_llm, build_chinese_few_shot_prompt, generate_structured_json
 
 @pytest.mark.asyncio
 async def test_golden_dataset_rag_and_llm_precision():
     rag_engine = get_rag_engine()
-    llm = get_llm()
+    llm = get_llm(model_name="qwen2.5")
 
     total_cases = len(GOLDEN_EVAL_DATASET)
     passed_retrieval = 0
@@ -27,23 +27,10 @@ async def test_golden_dataset_rag_and_llm_precision():
             passed_retrieval += 1
 
         # 2. LLM 응답 생성 및 구조화 검증
-        prompt = f"""
-        [지침]
-        중국어 교육 전문가로서 아래 [참고 규칙]을 기반으로 질문에 정확히 답변하세요.
-        반드시 다음 JSON 포맷만 반환하세요.
-        
-        {{
-            "target_pinyin": "성조 변조가 적용된 정확한 핀인 표현",
-            "modified_syllable": "변조된 한자 및 성조 변화 요약",
-            "rule_description": "성조 변조 또는 발음 예외 규칙에 대한 논리적 설명"
-        }}
-
-        [참고 규칙]
-        {json.dumps(retrieved.get("rules", []), ensure_ascii=False)}
-
-        [질문]
-        {item['query']}
-        """
+        prompt = build_chinese_few_shot_prompt(
+            query=item["query"],
+            context=retrieved.get("rules", [])
+        )
 
         response_json = await generate_structured_json(llm, prompt)
 
