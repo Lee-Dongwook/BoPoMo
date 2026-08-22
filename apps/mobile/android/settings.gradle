@@ -1,0 +1,13 @@
+pluginManagement {
+    // pnpm은 의존성을 .pnpm 저장소에 배치하므로 실제 플러그인 경로를 지정합니다.
+    includeBuild("../../../node_modules/.pnpm/@react-native+gradle-plugin@0.87.0/node_modules/@react-native/gradle-plugin")
+}
+plugins {
+    id("com.facebook.react.settings")
+}
+
+extensions.configure(com.facebook.react.ReactSettings) { autolinkLibrariesFromCommand() }
+
+rootProject.name = "mobile"
+include(":app")
+includeBuild("../../../node_modules/.pnpm/@react-native+gradle-plugin@0.87.0/node_modules/@react-native/gradle-plugin")
