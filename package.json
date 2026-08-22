@@ -1,0 +1,15 @@
+{
+  "name": "bopomo",
+  "version": "0.0.1",
+  "description": "Chinese Learning App",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lee-Dongwook/BoPoMo.git"
+  },
+  "author": "Lee-Dongwook <dlehddnr0713@gmail.com>",
+  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
+  "dependencies": {
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2"
+  }
+}
