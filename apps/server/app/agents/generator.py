@@ -1,8 +1,8 @@
-from app.rag.retriever.hybrid import HybridRAGEngine
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from app.agents.state import AgentState
 from app.core.llm import get_llm
+from app.rag.retriever.hybrid import HybridRAGEngine
 from app.rag.dependencies import get_rag_engine
 from app.schemas.sentence import GeneratedSentenceResponse
 
@@ -21,26 +21,45 @@ generator_prompt = ChatPromptTemplate.from_messages([
     ("human", "다음 취약 단어들을 포함한 예문을 생성해 주세요: {target_words}")
 ])
 
-def generate_sentence_node(state: AgentState) -> AgentState:
-    llm = get_llm()
-    rag_engine = get_rag_engine()
+async def generate_sentence_node(state: AgentState) -> AgentState:
+   try: 
+        llm = get_llm()
+        rag_engine: HybridRAGEngine = get_rag_engine()
 
-    target_words = state["target_words"]
-    rag_context = rag_engine.retrieve_context(target_words)
+        raw_target_words = state.get("target_words", [])
 
-    words_str = ", ".join([
-        f"{w['pinyin']}({w['meaning']}, {w['tone']}성)" for w in target_words
-    ])
-    chain = generator_prompt | llm | parser
+        formatted_words_for_prompt = []
+        target_words_dict_list = []
 
-    response: GeneratedSentenceResponse = chain.invoke({
-        "rag_context": rag_context,
-        "target_words": words_str,
-        "format_instructions": parser.get_format_instructions(),
-    })
-    
-    return {
-        **state,
-        "generated_sentence": response,
-        "next_step": "END"
-    }
+        for w in raw_target_words:
+            w_dict = w.model_dump() if hasattr(w, "model_dump") else (w if isinstance(w, dict) else {})
+
+            pinyin = w_dict.get("pinyin", "")
+            meaning = w_dict.get("meaning", "")
+            tone = w_dict.get("tone", "")
+
+            target_words_dict_list.append(w_dict)
+            formatted_words_for_prompt.append(f"{pinyin}({meaning}, {tone}성)")
+
+        words_str = ", ".join(formatted_words_for_prompt)
+
+        rag_context = rag_engine.retrieve_context(target_words=target_words_dict_list)
+
+        chain = generator_prompt | llm | parser
+        response: GeneratedSentenceResponse = await chain.ainvoke({
+                "rag_context": rag_context,
+                "target_words": words_str,
+                "format_instructions": parser.get_format_instructions(),
+        })
+
+        return {
+            **state,
+            "generated_sentence": response,
+            "next_step": "END"
+        }
+   except Exception as e:
+        return {
+            **state,
+            "error_message": f"Sentence generation failed: {str(e)}",
+            "next_step": "END"
+        }
