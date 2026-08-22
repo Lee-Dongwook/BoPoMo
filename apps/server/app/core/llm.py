@@ -2,6 +2,7 @@ import os
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
+from app.utils.json_parser import RobustJsonParser
 
 def get_llm(model_name: str = "gemma2") -> BaseChatModel:
     """
@@ -17,12 +18,18 @@ def get_llm(model_name: str = "gemma2") -> BaseChatModel:
         # 로컬 Ollama 호출 (기본 포트: http://localhost:11434)
         return ChatOllama(
             model=os.getenv("OLLAMA_MODEL", model_name),
-            temperature=0.7,
+            temperature=0.2,
             format="json",  # JSON 구조화 출력 강제
         )
 
     return ChatOpenAI(
         model="gpt-4o-mini",
-        temperature=0.7,
+        temperature=0.2,
+        model_kwargs={"response_format": {"type": "json_object"}}
     )
 
+async def generate_structured_json(llm: BaseChatModel, prompt: str) -> dict:
+    response = await llm.ainvoke(prompt)
+    content_str = response.content if isinstance(response.content, str) else str(response.content)
+    
+    return RobustJsonParser.parse(content_str)
