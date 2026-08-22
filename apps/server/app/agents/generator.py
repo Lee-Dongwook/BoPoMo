@@ -3,10 +3,10 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from app.agents.state import AgentState
 from app.core.llm import get_llm
+from app.rag.dependencies import get_rag_engine
 from app.schemas.sentence import GeneratedSentenceResponse
 
 parser = PydanticOutputParser(pydantic_object=GeneratedSentenceResponse)
-rag_engine = HybridRAGEngine(kg=...)
 
 generator_prompt = ChatPromptTemplate.from_messsages([
     ("system", (
@@ -23,10 +23,18 @@ generator_prompt = ChatPromptTemplate.from_messsages([
 
 def generate_sentence_node(state: AgentState) -> AgentState:
     llm = get_llm()
+    rag_engine = get_rag_engine()
+
+    target_words = state["target_words"]
+    rag_context = rag_engine.retrieve_context(target_words)
+
+    words_str = ", ".join([
+        f"{w['pinyin']}({w['meaning']}, {w['tone']}성)" for w in target_words
+    ])
     chain = generator_prompt | llm | parser
-    words_str = ", ".join([f"{w['pinyin']}({w['meaning']}, {w['tone']}성)" for w in state['target_words']])
-    
+
     response: GeneratedSentenceResponse = chain.invoke({
+        "rag_context": rag_context,
         "target_words": words_str,
         "format_instructions": parser.get_format_instructions(),
     })
