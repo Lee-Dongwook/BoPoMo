@@ -1,10 +1,10 @@
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from app.agents.state import AgentState
+from app.core.llm import get_llm
 from app.schemas.sentence import GeneratedSentenceResponse
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature = 0.7)
-structured_llm = llm.with_structured_output(GeneratedSentenceResponse)
+parser = PydanticOutputParser(pydantic_object=GeneratedSentenceResponse)
 
 generator_prompt = ChatPromptTemplate.from_messsages([
     ("system", (
@@ -16,10 +16,15 @@ generator_prompt = ChatPromptTemplate.from_messsages([
 ])
 
 def generate_sentence_node(state: AgentState) -> AgentState:
+    llm = get_llm()
+    chain = generator_prompt | llm | parser
     words_str = ", ".join([f"{w['pinyin']}({w['meaning']}, {w['tone']}성)" for w in state['target_words']])
-    prompt_value = generator_prompt.format_messages(target_words=words_str)
-    response = structured_llm.invoke(prompt_value)
-
+    
+    response: GeneratedSentenceResponse = chain.invoke({
+        "target_words": words_str,
+        "format_instructions": parser.get_format_instructions(),
+    })
+    
     return {
         **state,
         "generated_sentence": response,
